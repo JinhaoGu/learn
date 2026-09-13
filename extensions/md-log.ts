@@ -26,6 +26,7 @@
  */
 
 import type { ExtensionAPI } from "@mariozechner/pi-coding-agent";
+import { Type } from "@sinclair/typebox";
 import * as fs from "node:fs";
 import * as path from "node:path";
 
@@ -65,6 +66,12 @@ export default function mdLog(pi: ExtensionAPI) {
 		return prev.then(fn).finally(() => release!());
 	}
 
+	function normalizeForObsidian(text: string): string {
+		return text
+			.replace(/\\\[([\s\S]*?)\\\]/g, (_m, body) => `$$\n${String(body).trim()}\n$$`)
+			.replace(/\\\(([\s\S]*?)\\\)/g, (_m, body) => `$${String(body).trim()}$`);
+	}
+
 	function appendToFile(text: string): void {
 		if (!logFile) return;
 		try {
@@ -73,7 +80,7 @@ export default function mdLog(pi: ExtensionAPI) {
 				current = fs.readFileSync(logFile, "utf-8");
 			}
 			const prefix = current.trim().length > 0 ? "\n\n" : "";
-			fs.writeFileSync(logFile, current + prefix + text + "\n", "utf-8");
+			fs.writeFileSync(logFile, current + prefix + normalizeForObsidian(text) + "\n", "utf-8");
 		} catch {
 			// File may have been deleted externally; ignore.
 		}
@@ -197,33 +204,28 @@ export default function mdLog(pi: ExtensionAPI) {
 
 	// --- Event handlers ---
 
-	pi.on("message_end", async (event, _ctx) => {
-		if (!logFile) return;
-		const msg = event.message;
-		if (!msg || !("role" in msg)) return;
+	// Ordinary chat is intentionally not mirrored. The Obsidian file is a
+	// curated lesson artifact rather than a transcript. Teaching prose is added
+	// explicitly through lesson_note; graded quiz content remains automatic.
 
-		if (msg.role === "user") {
-			const text = typeof msg.content === "string"
-				? msg.content
-				: Array.isArray(msg.content)
-					? msg.content.filter((c: any) => c.type === "text").map((c: any) => c.text).join("\n")
-					: "";
-			const trimmed = stripSkillBlocks(text.trim());
-			if (!trimmed) return;
-			await withLock(() => appendToFile(userBlock(trimmed)));
-			return;
-		}
-
-		if (msg.role === "assistant") {
-			const textParts = (msg.content || [])
-				.filter((c: any) => c.type === "text")
-				.map((c: any) => (c.text as string).trim())
-				.filter((t: string) => t.length > 0);
-			if (textParts.length === 0) return;
-			await withLock(() => appendToFile(assistantBlock(textParts.join("\n\n"))));
-			return;
-		}
-		// toolResult messages are handled by the tool_result event (for QA tools).
+	pi.registerTool({
+		name: "lesson_note",
+		label: "lesson_note",
+		description: "Append only polished, subject-matter learning content to the linked Obsidian note. Never use for setup, status, debugging, confirmations, or other process conversation.",
+		parameters: Type.Object({
+			markdown: Type.String({ description: "Polished Markdown lesson content. Use Obsidian LaTeX delimiters $...$ and $$...$$." }),
+		}),
+		async execute(_toolCallId, params) {
+			if (!logFile) {
+				return { content: [{ type: "text" as const, text: "No Obsidian note is linked." }], details: { written: false } };
+			}
+			const markdown = params.markdown.trim();
+			if (!markdown) {
+				return { content: [{ type: "text" as const, text: "No lesson content supplied." }], details: { written: false } };
+			}
+			await withLock(() => appendToFile(assistantBlock(markdown)));
+			return { content: [{ type: "text" as const, text: "Lesson content added to Obsidian." }], details: { written: true } };
+		},
 	});
 
 	// ask_user_question never shuffles its options, so the tool_call args are
