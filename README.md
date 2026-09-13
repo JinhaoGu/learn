@@ -1,5 +1,7 @@
 # learn
 
+English | [简体中文](README.zh-CN.md)
+
 [![video](assets/thumbnail.png)](https://www.youtube.com/watch?v=kzcI5F4tGiU)
 
 An AI learning system based on the approach shown in [How I Use AI to Learn Things](https://www.youtube.com/watch?v=kzcI5F4tGiU).
@@ -14,7 +16,7 @@ The teaching behavior is now **harness-neutral**. The two core skills describe c
 Both are standard `SKILL.md` directories. Copy either directory into the skill location recognized by your harness, or point your harness at this repository's `skills/` directory. Harnesses use different discovery locations, so consult the host's skill-loading documentation.
 
 ```bash
-git clone https://github.com/amosblomqvist/learn.git
+git clone https://github.com/JinhaoGu/learn.git
 # Install or link learn/skills/teach and learn/skills/visualize
 # into your harness's skill directory.
 ```
@@ -47,7 +49,7 @@ This repository originated as a Pi project configuration, so the following files
 To use that adapter, clone the repository as the project's `.pi` directory and satisfy the Pi extension dependencies:
 
 ```bash
-git clone https://github.com/amosblomqvist/learn.git .pi
+git clone https://github.com/JinhaoGu/learn.git .pi
 ```
 
 The portable skills do not require these extensions or agent definitions. Other harnesses can provide equivalent capabilities under any names; the skills adapt to what is actually available.
