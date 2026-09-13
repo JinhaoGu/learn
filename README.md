@@ -21,6 +21,28 @@ git clone https://github.com/JinhaoGu/learn.git
 # into your harness's skill directory.
 ```
 
+## Claude Code, Codex, and OpenCode adapters
+
+Install skills, native research/visual agents, and a local MCP service providing
+quiz grading, curated Markdown notes, and SVG/Mermaid rendering. From this clone
+(Node.js 22+), choose your harness and an existing project:
+
+```bash
+npm ci
+node scripts/install-harness.mjs --harness claude --project /absolute/my-project --with-mcp
+# --harness also accepts codex or opencode
+```
+
+Restart the harness, then use `/teach` in Claude Code, `$teach` in Codex, or ask
+OpenCode to use the `teach` skill. Native question UI is used when available;
+otherwise the lesson and quiz run in chat. SVG rendering is bundled; Mermaid
+rendering additionally needs `@mermaid-js/mermaid-cli` and its browser.
+
+See [installation, feature mapping, and verification](docs/harnesses.md) for
+configuration paths, optional skills-only installation, and acceptance checks.
+Automated checks cover installation and the MCP protocol; full model-driven
+teaching sessions still need verification in each chosen host/version.
+
 ## Capability fallbacks
 
 The portable skills discover and use whatever the active harness exposes:

@@ -21,6 +21,40 @@ git clone https://github.com/JinhaoGu/learn.git
 # 当前 harness 的 skill 目录。
 ```
 
+## Claude Code、Codex 和 OpenCode 适配层
+
+现在可以安装核心 skill、原生研究/绘图 agent，以及提供测验评分、精选 Markdown
+笔记、SVG/Mermaid 渲染的本地 MCP 服务。在本仓库克隆目录中执行（需要 Node.js 22+）：
+
+```bash
+npm ci
+node scripts/install-harness.mjs --harness claude --project /absolute/my-project --with-mcp
+# --harness 也可以选择 codex 或 opencode
+# /absolute/my-project 替换为你将启动 harness 的已有项目目录
+```
+
+安装后重启 harness：Claude Code 使用 `/teach`，Codex 使用 `$teach`，OpenCode
+直接说“使用 teach skill 教我……”。可用时使用宿主原生提问 UI，否则在对话中提问、
+等待回答并评分。SVG 渲染已内置；Mermaid 渲染还需安装 `@mermaid-js/mermaid-cli`
+及其浏览器。
+
+| 功能 | 其他 harness 的实现 |
+| --- | --- |
+| 提问和测验 | 原生提问工具或普通对话；MCP 创建题目并对真实回答评分 |
+| 课程笔记 | 用户选定路径后，教师逐段调用 MCP 追加精选 Markdown 内容 |
+| 可视化 | MCP 返回 PNG，agent 检查后修改源码并重新渲染 |
+| 研究/绘图委派 | `learn-researcher`、`learn-visual-maker` 原生 agent；缺少委派能力时主 agent 完成 |
+
+`--dry-run` 预览安装；省略 `--with-mcp` 只安装 skill 和 agent。安装器会保留无关配置
+及 JSONC/TOML 注释，遇到不同的同名 skill、agent 或 learn MCP 配置时停止，避免覆盖。
+MCP 配置引用本仓库的绝对路径，因此安装后请保留克隆目录和依赖。Codex 需要信任项目
+配置，Claude Code 需要启用项目 MCP，OpenCode 必须退出重启以加载配置。
+
+测验在 MCP 进程内保存最近 200 题，重启后过期；笔记通过显式工具调用写入，并非自动
+会话日志。完整配置路径、渲染依赖和验收步骤见[跨 harness 使用指南](docs/harnesses.md)。
+`npm test` 覆盖安装和真实 MCP 协议流程；各宿主的模型选择 skill、UI 和完整教学行为
+仍需在所选版本中按指南实测。
+
 ## 能力降级
 
 通用 skill 会发现并使用当前 harness 实际提供的能力：

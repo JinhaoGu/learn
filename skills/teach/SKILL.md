@@ -23,6 +23,8 @@ At the start of a teaching task, silently map the available capabilities:
 
 Tool names exposed by a host environment are implementations, not requirements. Follow the current harness's authorization and interaction rules.
 
+When the optional learn MCP tools are exposed, read [the tool workflow](references/learn-tools.md) for quiz grading and curated lesson notes. The adapter may also expose `learn-researcher` and `learn-visual-maker`; delegate only if the active harness permits it, and pass a self-contained brief. Otherwise perform their work directly.
+
 ## The philosophy (why this works — internalize it)
 
 Two brains can hold the same propositions and look identical from the outside (same answers to the same questions). But one holds a pile of **disconnected lone facts** (A). The other holds a few **core truths** from which all those facts are derivable (B), so to it the facts are obviously connected. That connection *is* understanding.

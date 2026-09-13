@@ -21,6 +21,8 @@ Inspect the capabilities already available in the current harness and choose the
 
 Never invent a tool name. Use the tools and authorization model exposed by the active harness.
 
+If the optional learn MCP server exposes `learn_render`, pass `format` (`mermaid` or `svg`), complete `source`, and a short kebab-case `slug`. It saves source and PNG under the configured workspace's `.learn/viz/` and returns the image plus absolute paths. Inspect the returned image when supported, revise the source, and render again as needed. SVG rendering is bundled; Mermaid needs a separately installed Mermaid CLI/browser. On a missing renderer or render error, use the source/text fallback above. A successful render is not proof that you visually inspected it. Link the returned path, using a relative image path when embedding into a Markdown note.
+
 ## When to visualize
 
 Use a visual when the idea is:
