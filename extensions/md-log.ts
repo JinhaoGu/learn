@@ -72,8 +72,8 @@ export default function mdLog(pi: ExtensionAPI) {
 			.replace(/\\\(([\s\S]*?)\\\)/g, (_m, body) => `$${String(body).trim()}$`);
 	}
 
-	function appendToFile(text: string): void {
-		if (!logFile) return;
+	function appendToFile(text: string): boolean {
+		if (!logFile) return false;
 		try {
 			let current = "";
 			if (fs.existsSync(logFile)) {
@@ -81,8 +81,9 @@ export default function mdLog(pi: ExtensionAPI) {
 			}
 			const prefix = current.trim().length > 0 ? "\n\n" : "";
 			fs.writeFileSync(logFile, current + prefix + normalizeForObsidian(text) + "\n", "utf-8");
+			return true;
 		} catch {
-			// File may have been deleted externally; ignore.
+			return false;
 		}
 	}
 
@@ -118,8 +119,19 @@ export default function mdLog(pi: ExtensionAPI) {
 		return `> [!abstract] PI\n\n${text}`;
 	}
 
+	function optionLetter(index: number): string {
+		let n = index;
+		let label = "";
+		while (n > 0) {
+			n -= 1;
+			label = String.fromCharCode(65 + (n % 26)) + label;
+			n = Math.floor(n / 26);
+		}
+		return label || "?";
+	}
+
 	function optionsList(options: Array<{ label: string }>): string[] {
-		return options.map((o, i) => `${i + 1}. ${o.label}`);
+		return options.map((o, i) => `${optionLetter(i + 1)}. ${o.label}`);
 	}
 
 	function questionCallout(label: string, question: string, context: string | undefined, options: Array<{ label: string }>): string {
@@ -160,12 +172,12 @@ export default function mdLog(pi: ExtensionAPI) {
 			body.push("Your answer: I don't know");
 		} else {
 			const answers: any[] = details?.answers || [];
-			const sel = answers.map((a) => `${a.index}. ${a.label}`).join(", ") || "(none)";
+			const sel = answers.map((a) => `${optionLetter(a.index)}. ${a.label}`).join(", ") || "(none)";
 			body.push(`Your answer: ${sel}`);
 		}
 
 		const correctIndices: number[] = details?.correctIndices || [];
-		const correctStr = correctIndices.map((i) => `${i}`).join(", ");
+		const correctStr = correctIndices.map((i) => optionLetter(i)).join(", ");
 		body.push(`Correct answer: ${correctStr}`);
 
 		// Optional free-text note the user typed in the always-present note field.
@@ -196,7 +208,7 @@ export default function mdLog(pi: ExtensionAPI) {
 		const body: string[] = answers.map((a) => {
 			if (a.type === "other") return `Other: ${a.label}`;
 			if (a.type === "text") return a.label;
-			return `${a.index}. ${a.label}`;
+			return `${optionLetter(a.index)}. ${a.label}`;
 		});
 		if (body.length === 0) body.push("(no answer)");
 		return callout("example", "Answer", body);
@@ -211,7 +223,7 @@ export default function mdLog(pi: ExtensionAPI) {
 	pi.registerTool({
 		name: "lesson_note",
 		label: "lesson_note",
-		description: "Append only polished, subject-matter learning content to the linked Obsidian note. Never use for setup, status, debugging, confirmations, or other process conversation.",
+		description: "Append polished subject-matter learning content to the linked Obsidian note. When a note is linked, call this for every explanation, derivation, example, dependency map, or summary so the learning record has no gaps. Never use for setup, status, debugging, confirmations, or other process conversation; graded questions and feedback are logged automatically.",
 		parameters: Type.Object({
 			markdown: Type.String({ description: "Polished Markdown lesson content. Use Obsidian LaTeX delimiters $...$ and $$...$$." }),
 		}),
@@ -223,8 +235,10 @@ export default function mdLog(pi: ExtensionAPI) {
 			if (!markdown) {
 				return { content: [{ type: "text" as const, text: "No lesson content supplied." }], details: { written: false } };
 			}
-			await withLock(() => appendToFile(assistantBlock(markdown)));
-			return { content: [{ type: "text" as const, text: "Lesson content added to Obsidian." }], details: { written: true } };
+			const written = await withLock(() => appendToFile(assistantBlock(markdown)));
+			return written
+				? { content: [{ type: "text" as const, text: "Lesson content added to Obsidian." }], details: { written: true } }
+				: { content: [{ type: "text" as const, text: "Could not write the linked Obsidian note. Check that the file exists and is writable." }], details: { written: false } };
 		},
 	});
 

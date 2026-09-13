@@ -43,6 +43,7 @@ git clone https://github.com/JinhaoGu/learn.git
 - `extensions/ask-user-question.ts` — 用于偏好和方向选择的结构化提问
 - `extensions/quiz.ts` — 提供即时反馈的评分测验
 - `extensions/md-log.ts` — 整理后的 Markdown/Obsidian 课程笔记
+- `extensions/skill-stats.ts` — 持久化统计 skill 调用次数
 - `extensions/visual-tools/` — Mermaid 和 SVG 的创作及渲染工具
 - `agents/` — Pi 专用的研究与可视化 agent 定义
 
@@ -53,6 +54,17 @@ git clone https://github.com/JinhaoGu/learn.git .pi
 ```
 
 通用 skill 并不依赖这些 extension 或 agent 定义。其他 harness 可以用任意名称提供等价能力；skill 会根据实际可用的能力自行适配。
+
+### Pi skill 调用统计
+
+加载 Pi 适配层后，可以执行：
+
+```text
+/skill-stats
+/skill-stats teach
+```
+
+统计器会记录显式的 `/skill:name` 命令和模型自动读取 `SKILL.md` 的行为。同一个 agent turn 中重复读取同一 skill 只计一次。统计从安装该 extension 后开始，数据保存在本机的 `~/.pi/agent/skill-usage.jsonl`；不会记录提示词或学习内容。
 
 ## 设计边界
 

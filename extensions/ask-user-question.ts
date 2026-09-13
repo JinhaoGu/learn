@@ -46,6 +46,17 @@ type AskAnswer = TextAnswer | OptionAnswer | OtherAnswer;
 type AskUserQuestionStatus = "answered" | "cancelled" | "unavailable";
 type AskUserQuestionMode = "text" | "single-select" | "multi-select";
 
+function optionLetter(index: number): string {
+	let n = index;
+	let label = "";
+	while (n > 0) {
+		n -= 1;
+		label = String.fromCharCode(65 + (n % 26)) + label;
+		n = Math.floor(n / 26);
+	}
+	return label || "?";
+}
+
 interface AskUserQuestionResultDetails {
 	status: AskUserQuestionStatus;
 	question: string;
@@ -131,7 +142,7 @@ function formatAnswerForModel(answer: AskAnswer): string {
 		case "other":
 			return `Other: ${answer.label}`;
 		case "option":
-			return `${answer.index}. ${answer.label}`;
+			return `${optionLetter(answer.index)}. ${answer.label}`;
 	}
 }
 
@@ -296,7 +307,7 @@ async function askSingleChoice(
 				const option = allOptions[i];
 				const selected = i === optionIndex;
 				const prefix = selected ? theme.fg("accent", "> ") : "  ";
-				const label = option.isOther ? option.label : `${option.index}. ${option.label}`;
+				const label = option.isOther ? option.label : `${optionLetter(option.index!)}. ${option.label}`;
 				const styled = selected ? theme.fg("accent", label) : theme.fg("text", label);
 				add(`${prefix}${styled}`);
 				if (option.description) {
@@ -496,7 +507,7 @@ async function askMultiChoice(
 
 				const checked = selected.has(item.id);
 				const marker = checked ? "[x]" : "[ ]";
-				const label = `${marker} ${item.index}. ${item.label}`;
+				const label = `${marker} ${optionLetter(item.index!)}. ${item.label}`;
 				const styled = isFocused
 					? theme.fg("accent", label)
 					: theme.fg(checked ? "success" : "text", label);
@@ -660,7 +671,7 @@ export default function askUserQuestion(pi: ExtensionAPI) {
 					case "other":
 						return `${theme.fg("success", "✓ ")}${theme.fg("muted", "Other: ")}${theme.fg("accent", answer.label)}`;
 					case "option":
-						return `${theme.fg("success", "✓ ")}${theme.fg("accent", `${answer.index}. ${answer.label}`)}`;
+						return `${theme.fg("success", "✓ ")}${theme.fg("accent", `${optionLetter(answer.index)}. ${answer.label}`)}`;
 				}
 			});
 			return new Text(lines.join("\n"), 0, 0);

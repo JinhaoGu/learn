@@ -16,7 +16,7 @@ This skill is capability-based. Never assume a particular agent runtime, tool na
 At the start of a teaching task, silently map the available capabilities:
 
 - **User interaction:** use a structured question or choice tool when one exists; otherwise ask one concise question in chat and wait for the answer.
-- **Graded checks:** use an interactive quiz tool when one exists; otherwise present the question and balanced options in chat, wait, then grade and explain in the next turn.
+- **Graded checks:** use an interactive quiz tool when one exists; otherwise present the question and balanced options in chat, wait, then grade and explain in the next turn. Label choices `A`, `B`, `C`, `D`, `E` in display order, never `1`, `2`, `3`, `4`, `5`.
 - **Research:** use the harness's search or browsing tools. Delegate to a research subagent only when delegation exists and is appropriate; otherwise research directly.
 - **Visuals:** invoke the `visualize` skill when available. Otherwise emit a small Mermaid block for structural diagrams or create an SVG/image with whatever native tools are available.
 - **Lesson notes:** persist polished lesson content only when the user has linked, selected, or requested a destination and the harness can write to it. Otherwise keep the lesson in chat. A missing optional capability must never block teaching.
@@ -92,6 +92,7 @@ The tool already tells you to keep options even. That rule isn't enough on its o
 2. **Write the correct claim first, then mutate it into each distractor.** Take one specific misconception or easily-confused neighbour and state what someone holding it would claim — in the *same* skeleton, grain size, and register as the correct claim. Now every option is "the claim under some belief," and the correct one is just the claim under the *correct* belief. Parallelism falls out by construction instead of being policed.
 3. Each distractor must still be a real error the learner might actually make (so the choice is diagnostic), yet unambiguously wrong on the intended reading — tempting, not tricky.
 4. **No asymmetric bolding.** Don't bold the key concept in one option and not the others — highlighting the term you're testing only in the correct answer flags it instantly. Either bold nothing, or bold the parallel term in every option.
+5. **Use letter labels.** Display choices and refer to selected/correct answers as `A`, `B`, `C`, `D`, `E`, continuing alphabetically when needed. Do not number answer choices. Internal tool values may remain machine-readable strings or numeric indices when required by the harness; only the learner-facing labels must be letters.
 
 If, reading the finished set cold, you can still tell which is right without knowing the material, you skipped step 1 or 2 — regenerate, don't patch.
 
@@ -167,7 +168,11 @@ Exclude all non-content conversation:
 - confirmations, acknowledgements, cancellations, and “continue/ready” exchanges
 - goal/scope negotiation and other process chatter once its useful conclusion has been incorporated into the lesson plan
 
-Use the harness's note tool when available. Otherwise, if the user has authorized a Markdown destination, use normal file-writing capabilities. Do not create or choose a destination without the user's intent. Write polished explanations, derivations, examples, dependency maps, and summaries; do not log ordinary chat. Never write setup, status, debugging, confirmations, cancellations, or process discussion. Record graded questions and feedback only when the note workflow supports it. Never preserve or summarize a learner note that explicitly says it should not be recorded.
+Use the harness's note tool when available. Otherwise, if the user has authorized a Markdown destination, use normal file-writing capabilities. Do not create or choose a destination without the user's intent.
+
+Once a lesson-note destination is active, **every piece of learning content must be written there**, including explanations, derivations, examples, dependency maps, summaries, graded questions, the learner's answers, and instructional feedback. Write the content as it is taught rather than relying on a later cleanup or summary pass. A tool limitation may change how it is written, but must not silently create gaps in the learning record.
+
+Do not log ordinary chat. Never write setup, status, debugging, confirmations, cancellations, or process discussion. Never preserve or summarize a learner note that explicitly says it should not be recorded.
 
 ## Formatting — math renders as LaTeX
 

@@ -43,6 +43,7 @@ This repository originated as a Pi project configuration, so the following files
 - `extensions/ask-user-question.ts` — structured preference and direction questions
 - `extensions/quiz.ts` — graded questions with instant feedback
 - `extensions/md-log.ts` — curated Markdown/Obsidian lesson notes
+- `extensions/skill-stats.ts` — persistent skill invocation counters
 - `extensions/visual-tools/` — Mermaid and SVG authoring/rendering tools
 - `agents/` — Pi-specific researcher and visual-maker definitions
 
@@ -53,6 +54,17 @@ git clone https://github.com/JinhaoGu/learn.git .pi
 ```
 
 The portable skills do not require these extensions or agent definitions. Other harnesses can provide equivalent capabilities under any names; the skills adapt to what is actually available.
+
+### Pi skill usage statistics
+
+After loading the Pi adapter, run:
+
+```text
+/skill-stats
+/skill-stats teach
+```
+
+The counter records explicit `/skill:name` commands and automatic `SKILL.md` reads. Repeated reads of the same skill in one agent turn count once. Statistics start after this extension is installed and are stored locally in `~/.pi/agent/skill-usage.jsonl`; prompts and lesson content are never recorded.
 
 ## Design boundary
 

@@ -38,7 +38,7 @@ interface DisplayOption extends QuizOption {
 interface OptionAnswer {
 	label: string;
 	value: string;
-	index: number; // 1-based, matches the number shown to the user
+	index: number; // 1-based internally; displayed to the user as A, B, C, ...
 }
 
 // The always-present "I don't know" choice. It is NOT a real option: it never
@@ -48,6 +48,17 @@ interface OptionAnswer {
 const DONT_KNOW_VALUE = "__dont_know__";
 const DONT_KNOW_LABEL = "I don't know";
 const DONT_KNOW_INDEX = 0; // real options are 1-based; submit uses -1
+
+function optionLetter(index: number): string {
+	let n = index;
+	let label = "";
+	while (n > 0) {
+		n -= 1;
+		label = String.fromCharCode(65 + (n % 26)) + label;
+		n = Math.floor(n / 26);
+	}
+	return label || "?";
+}
 
 // Unified response from either ask* component. answers holds the real
 // selections (empty when dontKnow); note is the optional free-text the user
@@ -255,7 +266,7 @@ function unavailableResult(question: string, mode: QuizMode, message: string, co
 
 function formatOptionRef(options: QuizOption[], index: number): string {
 	const opt = options.find((o, i) => i + 1 === index);
-	return `${index}. ${opt ? opt.label : "(unknown)"}`;
+	return `${optionLetter(index)}. ${opt ? opt.label : "(unknown)"}`;
 }
 
 function buildResult(
@@ -283,7 +294,7 @@ function buildResult(
 		if (note) text += `\nUser's note: ${note}`;
 	} else {
 		const verdict = correct ? "correctly" : "incorrectly";
-		const selectedStr = answers.map((a) => `${a.index}. ${a.label}`).join(", ");
+		const selectedStr = answers.map((a) => `${optionLetter(a.index)}. ${a.label}`).join(", ");
 		text = `User answered ${verdict}.\nSelected: ${selectedStr}\nCorrect: ${correctStr}`;
 		if (note) text += `\nUser's note: ${note}`;
 	}
@@ -351,7 +362,7 @@ function renderFeedback(
 			marker = " ";
 			color = "dim";
 		}
-		add(theme.fg(color, ` ${marker} ${index}. ${opt.label}`));
+		add(theme.fg(color, ` ${marker} ${optionLetter(index)}. ${opt.label}`));
 	}
 
 	lines.push("");
@@ -559,7 +570,7 @@ async function askSingleChoice(
 					const option = allOptions[i];
 					const selected = focus === "options" && i === optionIndex;
 					const prefix = selected ? theme.fg("accent", "> ") : "  ";
-					const label = `${option.index}. ${option.label}`;
+					const label = `${optionLetter(option.index)}. ${option.label}`;
 					const styled = selected ? theme.fg("accent", label) : theme.fg("text", label);
 					add(`${prefix}${styled}`);
 					if (option.description) {
@@ -802,7 +813,7 @@ async function askMultiChoice(
 
 					const checked = selected.has(item.id);
 					const marker = checked ? "[x]" : "[ ]";
-					const label = `${marker} ${item.index}. ${item.label}`;
+					const label = `${marker} ${optionLetter(item.index)}. ${item.label}`;
 					const styled = isFocused ? theme.fg("accent", label) : theme.fg(checked ? "success" : "text", label);
 					add(`${prefix}${styled}`);
 					if (item.description) {
@@ -1023,19 +1034,19 @@ export default function quiz(pi: ExtensionAPI) {
 				if (details.dontKnow) {
 					// No guess — only reveal the correct answer(s); never show ✗.
 					mark = isKey ? theme.fg("success", "✓ ") : "  ";
-					body = isKey ? theme.fg("success", `${opt.index}. ${opt.label}`) : theme.fg("dim", `${opt.index}. ${opt.label}`);
+					body = isKey ? theme.fg("success", `${optionLetter(opt.index)}. ${opt.label}`) : theme.fg("dim", `${optionLetter(opt.index)}. ${opt.label}`);
 				} else if (isSelected && isKey) {
 					mark = theme.fg("success", "✓ ");
-					body = theme.fg("accent", `${opt.index}. ${opt.label}`);
+					body = theme.fg("accent", `${optionLetter(opt.index)}. ${opt.label}`);
 				} else if (isSelected && !isKey) {
 					mark = theme.fg("error", "✗ ");
-					body = theme.fg("error", `${opt.index}. ${opt.label}`);
+					body = theme.fg("error", `${optionLetter(opt.index)}. ${opt.label}`);
 				} else if (!isSelected && isKey) {
 					mark = theme.fg("success", "✓ ");
-					body = theme.fg("success", `${opt.index}. ${opt.label}`);
+					body = theme.fg("success", `${optionLetter(opt.index)}. ${opt.label}`);
 				} else {
 					mark = "  ";
-					body = theme.fg("dim", `${opt.index}. ${opt.label}`);
+					body = theme.fg("dim", `${optionLetter(opt.index)}. ${opt.label}`);
 				}
 				lines.push(`${mark}${body}`);
 			}
